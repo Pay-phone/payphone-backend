@@ -1,2 +1,8 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+
+# 줄바꿈 설정
+* text=auto
+*.cmd text eol=crlf
+*.sh text eol=lf
