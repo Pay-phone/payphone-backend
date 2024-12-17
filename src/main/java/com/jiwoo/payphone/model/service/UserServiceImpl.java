@@ -23,9 +23,16 @@ public class UserServiceImpl implements UserService{
 	//회원가입 
 	@Override
 	public void registerUser(User user) {
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		user.setRole("user");
-		userDao.insertUser(user);
+		try {
+			user.setPassword(passwordEncoder.encode(user.getPassword()));
+			user.setRole("user");
+			userDao.insertUser(user);
+			
+		} catch(Exception e) {
+			// 예외 발생 시 로깅
+	        System.err.println("Error registering user: " + e.getMessage());
+	        throw e;
+		}
 		
 	}
 	
@@ -37,6 +44,7 @@ public class UserServiceImpl implements UserService{
 			//JWT 토큰 발급
 			return jwtUtil.generateToken(user.getUserId(), password);
 		}
+		
 		return null;
 	}
 
