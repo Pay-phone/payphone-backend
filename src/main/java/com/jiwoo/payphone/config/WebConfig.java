@@ -21,4 +21,13 @@ public class WebConfig implements WebMvcConfigurer {
 		.excludePathPatterns("/api/auth/**", "/swagger-ui/**");
 	}
 	
+	// CORS 설정
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*");
+    }
+	
 }
