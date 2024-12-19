@@ -1,5 +1,7 @@
 package com.jiwoo.payphone.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,11 +45,11 @@ public class AuthController {
         }
 
         try {
-            String token = userService.login(user.getUsername(), user.getPassword());
-            if (token == null) {
+            Map<String, Object> loginResult = userService.login(user.getUsername(), user.getPassword());
+            if (loginResult == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
             }
-            return ResponseEntity.ok().body(token);
+            return ResponseEntity.ok().body(loginResult);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("로그인 실패: " + e.getMessage());
         }

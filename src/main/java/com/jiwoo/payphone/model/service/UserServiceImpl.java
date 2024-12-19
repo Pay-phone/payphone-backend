@@ -1,5 +1,8 @@
 package com.jiwoo.payphone.model.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -38,12 +41,26 @@ public class UserServiceImpl implements UserService{
 	
 	//로그인 처리 및 JWT 발급 
 	@Override
-	public String login(String username, String password) {
+	public Map<String, Object> login(String username, String password) {
 		User user = userDao.findByUsername(username);
-		if(user != null && passwordEncoder.matches(password, user.getPassword())) {
-			//JWT 토큰 발급
-			return jwtUtil.generateToken(user.getUserId(), password);
-		}
+		if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+            // JWT 토큰 생성
+            String token = jwtUtil.generateToken(user.getUserId(), user.getUsername());
+
+            // 응답 데이터 생성
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+
+            // 사용자 정보에서 필요한 데이터만 포함
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userId", user.getUserId());
+            userInfo.put("username", user.getUsername());
+            userInfo.put("email", user.getEmail());
+
+            response.put("user", userInfo);
+
+            return response;
+        }
 		
 		return null;
 	}
