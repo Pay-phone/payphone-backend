@@ -22,5 +22,13 @@
 	    FROM accounts 
 	    WHERE account_number = #{accountNumber}
 	 </select>
-
+	 
+	 <!-- UserId로 계좌 목록 조회 -->
+	<select id="findAccountsByUserId" parameterType="java.lang.Long" resultType="map">
+		SELECT account_id AS accountId, account_number AS accountNumber, balance
+        FROM accounts
+        WHERE user_id = #{userId}
+	
+	</select>
+	
 </mapper>
