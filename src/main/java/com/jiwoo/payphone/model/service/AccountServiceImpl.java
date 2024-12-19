@@ -1,6 +1,8 @@
 package com.jiwoo.payphone.model.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +33,8 @@ public class AccountServiceImpl implements AccountService{
 	    return account;
 
 	}
-	
-	//계좌 조회 
+
+	//세부 계좌 조회 
 	@Override
 	public Account getAccountById(Long accountId) {
 		return accountDao.selectAccountById(accountId);
@@ -53,6 +55,14 @@ public class AccountServiceImpl implements AccountService{
 	public boolean isAccountNumberExists(String accountNumber) {
 	    int result = accountDao.isAccountNumberExists(accountNumber);
 	    return result > 0; // 결과가 1이상이면 true 반환  
+	}
+
+
+
+	//userId에 따른 전체 계좌 조회 
+	@Override
+	public List<Map<String, Object>> getAccountsByUserId(Long userId) {
+		return accountDao.findAccountsByUserId(userId);
 	}
 
 }
