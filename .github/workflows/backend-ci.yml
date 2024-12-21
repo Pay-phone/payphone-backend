@@ -9,20 +9,6 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-          MYSQL_DATABASE: payphone_db
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
     steps:
       # 1. Checkout Repository
       - name: Checkout code
@@ -37,11 +23,6 @@ jobs:
 
       # 3. Run Tests
       - name: Run tests with Maven
-        env:
-          SPRING_PROFILES_ACTIVE: test
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DATABASE_USERNAME: ${{ secrets.DATABASE_USERNAME }}
-          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
         run: mvn clean test
 
       # 4. Build Jar
@@ -50,26 +31,22 @@ jobs:
 
       # 5. Upload to S3
       - name: Upload Jar to S3
-        uses: jakejarvis/s3-sync-action@v0.5.1
-        with:
-          args: --acl public-read
+        run: |
+          aws s3 cp ./target/payphone-backend-0.0.1-SNAPSHOT.jar s3://${{ secrets.DEPLOY_S3_BUCKET }}/
         env:
-          AWS_S3_BUCKET: ${{ secrets.DEPLOY_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          SOURCE_DIR: ./target/payphone-backend-0.0.1-SNAPSHOT.jar
-          DEST_DIR: /
 
-      # 6. Trigger CodeDeploy
-      - name: Trigger CodeDeploy
-        uses: aws-actions/aws-code-deploy@v1
-        with:
-          application-name: ${{ secrets.DEPLOY_APPLICATION_NAME }}
-          deployment-group: ${{ secrets.DEPLOY_GROUP_NAME }}
-          deployment-config: CodeDeployDefault.OneAtATime
-          bundle-type: zip
-          region: ${{ secrets.AWS_REGION }}
+      # 6. Trigger CodeDeploy Deployment
+      - name: Deploy to EC2 with CodeDeploy
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ secrets.DEPLOY_APPLICATION_NAME }} \
+            --deployment-group-name ${{ secrets.DEPLOY_GROUP_NAME }} \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --s3-location bucket=${{ secrets.DEPLOY_S3_BUCKET }},key=payphone-backend-0.0.1-SNAPSHOT.jar,bundleType=zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
