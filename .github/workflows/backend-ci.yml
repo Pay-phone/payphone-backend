@@ -1,4 +1,4 @@
-name: Backend CI
+name: Backend CI/CD
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     services:
@@ -24,15 +24,18 @@ jobs:
           --health-retries=3
 
     steps:
+      # 1. Checkout Repository
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Set up JDK
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: 21
           distribution: 'temurin'
 
+      # 3. Run Tests
       - name: Run tests with Maven
         env:
           SPRING_PROFILES_ACTIVE: test
@@ -41,5 +44,32 @@ jobs:
           DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
         run: mvn clean test
 
+      # 4. Build Jar
       - name: Build with Maven
         run: mvn clean package
+
+      # 5. Upload to S3
+      - name: Upload Jar to S3
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl public-read
+        env:
+          AWS_S3_BUCKET: ${{ secrets.DEPLOY_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          SOURCE_DIR: ./target/payphone-backend-0.0.1-SNAPSHOT.jar
+          DEST_DIR: /
+
+      # 6. Trigger CodeDeploy
+      - name: Trigger CodeDeploy
+        uses: aws-actions/aws-code-deploy@v1
+        with:
+          application-name: ${{ secrets.DEPLOY_APPLICATION_NAME }}
+          deployment-group: ${{ secrets.DEPLOY_GROUP_NAME }}
+          deployment-config: CodeDeployDefault.OneAtATime
+          bundle-type: zip
+          region: ${{ secrets.AWS_REGION }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
