@@ -1,0 +1,15 @@
+version: 0.0
+os: linux
+files:
+  - source: target/payphone-backend-0.0.1-SNAPSHOT.jar
+    destination: /home/ubuntu/app/
+
+hooks:
+  ApplicationStop:
+    - location: deploy-scripts/stop-server.sh
+      timeout: 300
+      runas: ubuntu
+  ApplicationStart:
+    - location: deploy-scripts/start-server.sh
+      timeout: 300
+      runas: ubuntu
