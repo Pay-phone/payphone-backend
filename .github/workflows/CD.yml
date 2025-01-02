@@ -8,8 +8,8 @@ on:
 env:
   AWS_REGION: ap-northeast-2
   S3_BUCKET_NAME: payphone-backend-deploy
-  CODE_DEPLOY_APPLICATION_NAME: payphone-codedeploy-app
-  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: payphone-codedeploy-deployment-group
+  CODE_DEPLOY_APPLICATION_NAME: payphone_backend
+  CODE_DEPLOY_DEPLOYMENT_GROUP_NAME: payphone-backend-group
 
 jobs:
   deploy:
